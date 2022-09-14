@@ -12,6 +12,8 @@ app.get('/*', async (req, res) => {
     `${req.protocol}://developers.buymeacoffee.com/`
   );
 
+  console.log('Received request:', { url: req.url, remoteUrl: remoteUrl.href });
+
   // Make sure the URL points to an API endpoint
   if (!remoteUrl.pathname.startsWith('/api/v1')) {
     res.status(400).end('Invalid path');
@@ -22,6 +24,7 @@ app.get('/*', async (req, res) => {
   const cachedResponse = await getCacheItem(remoteUrl.pathname);
   if (cachedResponse) {
     res.status(200).end(cachedResponse);
+    console.log('Served cached response');
     return;
   }
 
@@ -47,7 +50,7 @@ app.get('/*', async (req, res) => {
   }
 
   res.status(response.status).end(response.data);
-  console.log('Request completed:', { remoteUrl, status: response.status });
+  console.log('Served live response:', { status: response.status });
 });
 
 app.listen(port, () => {
