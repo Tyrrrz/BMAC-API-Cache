@@ -1,8 +1,10 @@
 import axios from 'axios';
 import express from 'express';
 import { getCacheItem, setCacheItem } from './cache';
+import { getPort } from './utils/env';
 
 const app = express();
+const port = getPort();
 
 app.get('/*', async (req, res) => {
   const remoteUrl = new URL(
@@ -48,6 +50,6 @@ app.get('/*', async (req, res) => {
   console.log('Request completed:', { remoteUrl, status: response.status });
 });
 
-app.listen(3000, () => {
-  console.log('App running on http://localhost:3000');
+app.listen(port, () => {
+  console.log(`App running on http://localhost:${port}`);
 });
