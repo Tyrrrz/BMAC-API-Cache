@@ -5,7 +5,10 @@ import { getCacheItem, setCacheItem } from './cache';
 const app = express();
 
 app.get('/*', async (req, res) => {
-  const remoteUrl = new URL(req.url.toLowerCase(), 'https://developers.buymeacoffee.com/');
+  const remoteUrl = new URL(
+    req.url.toLowerCase(),
+    `${req.protocol}://developers.buymeacoffee.com/`
+  );
 
   // Make sure the URL points to an API endpoint
   if (!remoteUrl.pathname.startsWith('/api/v1')) {
@@ -36,10 +39,15 @@ app.get('/*', async (req, res) => {
     await setCacheItem(remoteUrl.pathname, response.data);
   }
 
+  // Proxy headers
+  for (const [key, value] of Object.entries(response.headers)) {
+    res.setHeader(key, value);
+  }
+
   res.status(response.status).end(response.data);
   console.log('Request completed:', { remoteUrl, status: response.status });
 });
 
 app.listen(3000, () => {
-  console.log('Example app listening on port 3000!');
+  console.log('App running on http://localhost:3000');
 });
