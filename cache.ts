@@ -1,5 +1,5 @@
 import { createClient } from 'redis';
-import { getRedisUrl } from './utils/env';
+import { getCacheTtl, getRedisUrl } from './utils/env';
 
 const redis = createClient({
   url: getRedisUrl()
@@ -26,5 +26,7 @@ export const getCacheItem = async (key: string) => {
 export const setCacheItem = async (key: string, value: string) => {
   await ensureConnected();
 
-  await redis.set(key, value);
+  await redis.set(key, value, {
+    EX: getCacheTtl()
+  });
 };

@@ -10,3 +10,7 @@ export const getRedisUrl = () => {
 
   return value;
 };
+
+export const getCacheTtl = () => {
+  return Number(process.env.CACHE_TTL) || 86400;
+};
