@@ -40,6 +40,7 @@ app.get('/*', async (req, res) => {
     headers: {
       authorization: req.header('authorization') || ''
     },
+    responseType: 'text',
     validateStatus: () => true
   });
 
