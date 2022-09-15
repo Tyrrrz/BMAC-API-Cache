@@ -7,7 +7,9 @@ const app = express();
 const port = getPort();
 
 app.get('/*', async (req, res) => {
-  const remoteUrl = new URL(req.url.toLowerCase(), 'https://developers.buymeacoffee.com/');
+  const protocol = req.header('x-forwarded-proto') || req.protocol;
+  const remoteUrl = new URL(req.url.toLowerCase(), `${protocol}://developers.buymeacoffee.com/`);
+
   console.log('Received request:', { url: req.url, remoteUrl: remoteUrl.href });
 
   // Make sure the URL points to an API endpoint
