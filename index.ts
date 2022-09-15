@@ -29,7 +29,7 @@ app.get('/*', async (req, res) => {
   });
 
   // Build the cache key based on the URL and the authorization header
-  const key = getSha256Hash([remoteUrl.pathname, authorization].join());
+  const key = getSha256Hash([remoteUrl.href, authorization].join());
   console.log('Cache key:', key);
 
   // Fetch cached response
