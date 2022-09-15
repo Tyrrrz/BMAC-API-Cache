@@ -1,6 +1,7 @@
 import axios from 'axios';
 import express from 'express';
 import { getCacheItem, setCacheItem } from './cache';
+import { getSha256Hash } from './hash';
 import { getPort } from './utils/env';
 
 const app = express();
@@ -9,6 +10,8 @@ const port = getPort();
 app.get('/*', async (req, res) => {
   const protocol = req.header('x-forwarded-proto') || req.protocol;
   const remoteUrl = new URL(req.url.toLowerCase(), `${protocol}://developers.buymeacoffee.com/`);
+
+  const authorization = req.header('authorization') || '';
 
   // Make sure the URL points to an API endpoint
   if (!remoteUrl.pathname.startsWith('/api/v1')) {
@@ -22,8 +25,12 @@ app.get('/*', async (req, res) => {
     data: req.body
   });
 
+  // Build the cache key based on the URL and the authorization header
+  const key = getSha256Hash([remoteUrl.pathname, authorization].join());
+  console.log('Cache key:', key);
+
   // Fetch cached response
-  const cachedData = await getCacheItem(remoteUrl.pathname);
+  const cachedData = await getCacheItem(key);
   if (cachedData) {
     res.status(200).end(cachedData);
 
@@ -37,7 +44,7 @@ app.get('/*', async (req, res) => {
   // Fetch remote response
   const liveResponse = await axios.get(remoteUrl.href, {
     headers: {
-      authorization: req.header('authorization') || ''
+      authorization
     },
     validateStatus: () => true
   });
@@ -53,7 +60,7 @@ app.get('/*', async (req, res) => {
 
   // Update cache
   if (liveResponse.status >= 200 && liveResponse.status < 300) {
-    await setCacheItem(remoteUrl.pathname, liveData);
+    await setCacheItem(key, liveData);
   }
 
   res.status(liveResponse.status).end(liveData);
