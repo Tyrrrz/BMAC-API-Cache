@@ -7,16 +7,12 @@ const app = express();
 const port = getPort();
 
 app.get('/*', async (req, res) => {
-  const remoteUrl = new URL(
-    req.url.toLowerCase(),
-    `${req.protocol}://developers.buymeacoffee.com/`
-  );
-
+  const remoteUrl = new URL(req.url.toLowerCase(), 'https://developers.buymeacoffee.com/');
   console.log('Received request:', { url: req.url, remoteUrl: remoteUrl.href });
 
   // Make sure the URL points to an API endpoint
   if (!remoteUrl.pathname.startsWith('/api/v1')) {
-    res.status(400).end('Invalid path');
+    res.status(400).end('Path must start with /api/v1');
     return;
   }
 
