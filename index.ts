@@ -2,10 +2,13 @@ import axios from 'axios';
 import express from 'express';
 import { getCacheItem, setCacheItem } from './cache';
 import { getSha256Hash } from './hash';
+import { delay } from './utils/async';
 import { getPort } from './utils/env';
 
 const app = express();
 const port = getPort();
+
+let lastRequestTimestamp: Date | null = null;
 
 app.get('/*', async (req, res) => {
   const protocol = req.header('x-forwarded-proto') || req.protocol;
@@ -41,6 +44,14 @@ app.get('/*', async (req, res) => {
     return;
   }
 
+  // Maintain 15 req/min rate limit against the API
+  if (lastRequestTimestamp) {
+    const diff = new Date().getTime() - lastRequestTimestamp.getTime();
+    if (diff < 4000) {
+      await delay(4000 - diff);
+    }
+  }
+
   // Fetch remote response
   const liveResponse = await axios.get(remoteUrl.href, {
     headers: {
@@ -51,6 +62,8 @@ app.get('/*', async (req, res) => {
 
   const liveData =
     typeof liveResponse.data === 'string' ? liveResponse.data : JSON.stringify(liveResponse.data);
+
+  lastRequestTimestamp = new Date();
 
   console.log('Received live response:', {
     status: liveResponse.status,
