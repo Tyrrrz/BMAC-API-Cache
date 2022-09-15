@@ -27,8 +27,7 @@ app.get('/*', async (req, res) => {
   if (cachedResponse) {
     res.status(200).end(cachedResponse);
 
-    console.log('Served cached response', {
-      remoteUrl: remoteUrl.href,
+    console.log('Served cached response:', {
       data: cachedResponse
     });
 
@@ -44,19 +43,19 @@ app.get('/*', async (req, res) => {
     validateStatus: () => true
   });
 
-  // Update cache
-  if (response.status >= 200 && response.status < 300) {
-    await setCacheItem(remoteUrl.pathname, response.data);
-  }
-
-  res.status(response.status).end(response.data);
-
-  console.log('Served live response:', {
-    remoteUrl: remoteUrl.href,
+  console.log('Received live response:', {
     status: response.status,
     headers: response.headers,
     data: response.data
   });
+
+  // Update cache
+  if (response.status >= 200 && response.status < 300) {
+    await setCacheItem(remoteUrl.pathname, String(response.data));
+  }
+
+  res.status(response.status).end(response.data);
+  console.log('Served live response');
 });
 
 app.listen(port, () => {
