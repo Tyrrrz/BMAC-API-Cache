@@ -23,39 +23,41 @@ app.get('/*', async (req, res) => {
   });
 
   // Fetch cached response
-  const cachedResponse = await getCacheItem(remoteUrl.pathname);
-  if (cachedResponse) {
-    res.status(200).end(cachedResponse);
+  const cachedData = await getCacheItem(remoteUrl.pathname);
+  if (cachedData) {
+    res.status(200).end(cachedData);
 
-    console.log('Served cached response:', {
-      data: cachedResponse
+    console.log('Served cached data:', {
+      data: cachedData
     });
 
     return;
   }
 
   // Fetch remote response
-  const response = await axios.get(remoteUrl.href, {
+  const liveResponse = await axios.get(remoteUrl.href, {
     headers: {
       authorization: req.header('authorization') || ''
     },
-    responseType: 'text',
     validateStatus: () => true
   });
 
+  const liveData =
+    typeof liveResponse.data === 'string' ? liveResponse.data : JSON.stringify(liveResponse.data);
+
   console.log('Received live response:', {
-    status: response.status,
-    headers: response.headers,
-    data: response.data
+    status: liveResponse.status,
+    headers: liveResponse.headers,
+    data: liveData
   });
 
   // Update cache
-  if (response.status >= 200 && response.status < 300) {
-    await setCacheItem(remoteUrl.pathname, String(response.data));
+  if (liveResponse.status >= 200 && liveResponse.status < 300) {
+    await setCacheItem(remoteUrl.pathname, liveData);
   }
 
-  res.status(response.status).end(response.data);
-  console.log('Served live response');
+  res.status(liveResponse.status).end(liveData);
+  console.log('Served live data');
 });
 
 app.listen(port, () => {
